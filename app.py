@@ -1849,9 +1849,11 @@ def create_bowler_economy_chart(df, team, phase=None):
     return chart
 
 # -----------------------------------------------------------------------------
-# Manim Cricket Ball Animation
+# Manim Cricket Ball Animation (Commented out - not used in deployment)
 # -----------------------------------------------------------------------------
-
+# This section contains manim animation code that requires additional dependencies
+# and is not used in the current Streamlit deployment
+"""
 class CricketBallTrajectory(Scene):
     """Manim animation showing cricket ball trajectory from stumps view"""
     
@@ -2007,7 +2009,7 @@ class CricketBallTrajectory(Scene):
         )
 
 def create_manim_animation(output_path="cricket_animation.mp4"):
-    """Generate Manim animation and return the video path"""
+    # Generate Manim animation and return the video path
     try:
         import shutil
         from manim import config, tempconfig
@@ -2064,6 +2066,7 @@ def create_manim_animation(output_path="cricket_animation.mp4"):
         import traceback
         st.code(traceback.format_exc())
         return None
+"""
 
 # -----------------------------------------------------------------------------
 # 3. Three.js 3D Visualization Helper
