@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏏 IPL Analytics Dashboard</title>
+    
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    
+    <!-- Vue.js 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div id="app">
+        <!-- Animated Background -->
+        <div class="animated-bg">
+            <div class="cricket-ball ball-1"></div>
+            <div class="cricket-ball ball-2"></div>
+            <div class="cricket-ball ball-3"></div>
+        </div>
+
+        <!-- Navigation Header -->
+        <header class="header">
+            <div class="container">
+                <div class="logo">
+                    <span class="logo-icon">🏏</span>
+                    <span class="logo-text">IPL Analytics</span>
+                </div>
+                <nav class="nav-menu">
+                    <a href="#" @click.prevent="currentView = 'phase'" :class="{active: currentView === 'phase'}">Phase Analysis</a>
+                    <a href="#" @click.prevent="currentView = 'matchup'" :class="{active: currentView === 'matchup'}">Matchup</a>
+                    <a href="#" @click.prevent="currentView = 'summary'" :class="{active: currentView === 'summary'}">Summary</a>
+                    <a href="#" @click.prevent="currentView = 'detailed'" :class="{active: currentView === 'detailed'}">Detailed Stats</a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Team Selector -->
+        <section class="team-selector">
+            <div class="container">
+                <div class="selector-grid">
+                    <div class="team-select-box">
+                        <label>Team 1</label>
+                        <select v-model="team1" @change="loadData">
+                            <option v-for="team in teams" :key="team" :value="team">[[ team ]]</option>
+                        </select>
+                    </div>
+                    <div class="vs-divider">VS</div>
+                    <div class="team-select-box">
+                        <label>Team 2</label>
+                        <select v-model="team2" @change="loadData">
+                            <option v-for="team in teams" :key="team" :value="team">[[ team ]]</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Phase Analysis View -->
+        <section v-if="currentView === 'phase'" class="content-section phase-analysis">
+            <div class="container">
+                <h2 class="section-title">📊 Phase Analysis</h2>
+                
+                <div class="stats-grid">
+                    <!-- Team 1 Stats -->
+                    <div class="team-stats team-1">
+                        <h3>[[ team1 ]]</h3>
+                        <div class="phase-cards">
+                            <div v-for="phase in team1PhaseData" :key="phase.phase" class="phase-card">
+                                <div class="phase-name">[[ phase.phase ]]</div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Runs</span>
+                                    <span class="stat-value">[[ phase.total_runs ]]</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Run Rate</span>
+                                    <span class="stat-value">[[ phase.run_rate ]]</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Boundaries</span>
+                                    <span class="stat-value">[[ phase.boundaries ]]</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Wickets</span>
+                                    <span class="stat-value">[[ phase.wickets ]]</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Team 2 Stats -->
+                    <div class="team-stats team-2">
+                        <h3>[[ team2 ]]</h3>
+                        <div class="phase-cards">
+                            <div v-for="phase in team2PhaseData" :key="phase.phase" class="phase-card">
+                                <div class="phase-name">[[ phase.phase ]]</div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Runs</span>
+                                    <span class="stat-value">[[ phase.total_runs ]]</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Run Rate</span>
+                                    <span class="stat-value">[[ phase.run_rate ]]</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Boundaries</span>
+                                    <span class="stat-value">[[ phase.boundaries ]]</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Wickets</span>
+                                    <span class="stat-value">[[ phase.wickets ]]</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="chart-grid">
+                    <div class="chart-container">
+                        <canvas id="runRateChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="boundariesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Matchup Analysis View -->
+        <section v-if="currentView === 'matchup'" class="content-section matchup-analysis">
+            <div class="container">
+                <h2 class="section-title">🎯 Batter vs Bowler Matchup</h2>
+                
+                <div class="matchup-grid">
+                    <div class="matchup-team">
+                        <h3>[[ team1 ]]</h3>
+                        <div class="matchup-heatmap">
+                            <div v-for="batter in team1MatchupData" :key="batter.batter" class="heatmap-row">
+                                <div class="batter-name">[[ batter.batter ]]</div>
+                                <div class="bowler-cells">
+                                    <div v-for="(stats, bowlerType) in batter.matchups" :key="bowlerType" 
+                                         class="heat-cell" 
+                                         :style="{background: getHeatColor(stats.strike_rate)}"
+                                         :title="`SR: ${stats.strike_rate}, Runs: ${stats.runs}, Balls: ${stats.balls}`">
+                                        [[ stats.strike_rate ]]
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bowler-labels">
+                                <div v-for="type in bowlerTypes" :key="type" class="bowler-label">
+                                    [[ type ]]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="matchup-team">
+                        <h3>[[ team2 ]]</h3>
+                        <div class="matchup-heatmap">
+                            <div v-for="batter in team2MatchupData" :key="batter.batter" class="heatmap-row">
+                                <div class="batter-name">[[ batter.batter ]]</div>
+                                <div class="bowler-cells">
+                                    <div v-for="(stats, bowlerType) in batter.matchups" :key="bowlerType" 
+                                         class="heat-cell" 
+                                         :style="{background: getHeatColor(stats.strike_rate)}"
+                                         :title="`SR: ${stats.strike_rate}, Runs: ${stats.runs}, Balls: ${stats.balls}`">
+                                        [[ stats.strike_rate ]]
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bowler-labels">
+                                <div v-for="type in bowlerTypes" :key="type" class="bowler-label">
+                                    [[ type ]]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Summary View -->
+        <section v-if="currentView === 'summary'" class="content-section summary-view">
+            <div class="container">
+                <h2 class="section-title">📋 Team Summary</h2>
+                
+                <div class="summary-grid">
+                    <!-- Team 1 Summary -->
+                    <div class="summary-card">
+                        <h3>[[ team1 ]]</h3>
+                        <div class="summary-stats">
+                            <div class="summary-stat">
+                                <div class="stat-icon">🏏</div>
+                                <div class="stat-info">
+                                    <div class="stat-value">[[ team1Summary.total_runs ]]</div>
+                                    <div class="stat-label">Total Runs</div>
+                                </div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="stat-icon">⚡</div>
+                                <div class="stat-info">
+                                    <div class="stat-value">[[ team1Summary.run_rate ]]</div>
+                                    <div class="stat-label">Run Rate</div>
+                                </div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="stat-icon">🎯</div>
+                                <div class="stat-info">
+                                    <div class="stat-value">[[ team1Summary.fours ]] / [[ team1Summary.sixes ]]</div>
+                                    <div class="stat-label">4s / 6s</div>
+                                </div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="stat-icon">📊</div>
+                                <div class="stat-info">
+                                    <div class="stat-value">[[ team1Summary.total_matches ]]</div>
+                                    <div class="stat-label">Matches</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4>Top Batters</h4>
+                        <div class="batters-list">
+                            <div v-for="(batter, index) in team1TopBatters" :key="batter.batter" class="batter-item">
+                                <span class="rank">[[ index + 1 ]]</span>
+                                <span class="batter-name">[[ batter.batter ]]</span>
+                                <span class="batter-runs">[[ batter.runs ]] runs</span>
+                                <span class="batter-sr">SR: [[ batter.strike_rate ]]</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Team 2 Summary -->
+                    <div class="summary-card">
+                        <h3>[[ team2 ]]</h3>
+                        <div class="summary-stats">
+                            <div class="summary-stat">
+                                <div class="stat-icon">🏏</div>
+                                <div class="stat-info">
+                                    <div class="stat-value">[[ team2Summary.total_runs ]]</div>
+                                    <div class="stat-label">Total Runs</div>
+                                </div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="stat-icon">⚡</div>
+                                <div class="stat-info">
+                                    <div class="stat-value">[[ team2Summary.run_rate ]]</div>
+                                    <div class="stat-label">Run Rate</div>
+                                </div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="stat-icon">🎯</div>
+                                <div class="stat-info">
+                                    <div class="stat-value">[[ team2Summary.fours ]] / [[ team2Summary.sixes ]]</div>
+                                    <div class="stat-label">4s / 6s</div>
+                                </div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="stat-icon">📊</div>
+                                <div class="stat-info">
+                                    <div class="stat-value">[[ team2Summary.total_matches ]]</div>
+                                    <div class="stat-label">Matches</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4>Top Batters</h4>
+                        <div class="batters-list">
+                            <div v-for="(batter, index) in team2TopBatters" :key="batter.batter" class="batter-item">
+                                <span class="rank">[[ index + 1 ]]</span>
+                                <span class="batter-name">[[ batter.batter ]]</span>
+                                <span class="batter-runs">[[ batter.runs ]] runs</span>
+                                <span class="batter-sr">SR: [[ batter.strike_rate ]]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Detailed Stats View -->
+        <section v-if="currentView === 'detailed'" class="content-section detailed-stats">
+            <div class="container">
+                <h2 class="section-title">📈 Detailed Statistics</h2>
+                
+                <div class="chart-row">
+                    <div class="chart-container">
+                        <h3>[[ team1 ]] - Over Progression</h3>
+                        <canvas id="overProgressionChart1"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>[[ team2 ]] - Over Progression</h3>
+                        <canvas id="overProgressionChart2"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Loading Overlay -->
+        <div v-if="loading" class="loading-overlay">
+            <div class="loading-spinner"></div>
+            <p>Loading IPL Data...</p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
