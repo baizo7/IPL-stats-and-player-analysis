@@ -1853,220 +1853,218 @@ def create_bowler_economy_chart(df, team, phase=None):
 # -----------------------------------------------------------------------------
 # This section contains manim animation code that requires additional dependencies
 # and is not used in the current Streamlit deployment
-"""
-class CricketBallTrajectory(Scene):
-    """Manim animation showing cricket ball trajectory from stumps view"""
-    
-    def construct(self):
-        # Set background
-        self.camera.background_color = "#1a1a2e"
-        
-        # Title
-        title = Text("Cricket Ball Trajectory - Stumps View", font_size=36, color=WHITE)
-        title.to_edge(UP)
-        self.play(Write(title), run_time=1)
-        self.wait(0.5)
-        
-        # Create pitch outline (stumps view - looking down the pitch)
-        pitch_width = 6
-        pitch_height = 8
-        pitch = Rectangle(
-            width=pitch_width, 
-            height=pitch_height,
-            color="#8B6F47",
-            fill_opacity=0.3,
-            stroke_color=WHITE,
-            stroke_width=2
-        )
-        pitch.shift(DOWN * 0.5)
-        
-        # Stumps at bottom
-        stump_positions = [-0.3, 0, 0.3]
-        stumps = VGroup()
-        for x_pos in stump_positions:
-            stump = Rectangle(
-                width=0.15,
-                height=0.8,
-                color=WHITE,
-                fill_opacity=1,
-                stroke_width=2
-            )
-            stump.move_to([x_pos, -pitch_height/2 + 0.4, 0])
-            stumps.add(stump)
-        
-        # Bails on top of stumps
-        bail = Rectangle(width=1, height=0.1, color=WHITE, fill_opacity=1)
-        bail.move_to([0, -pitch_height/2 + 0.85, 0])
-        
-        # Draw pitch and stumps
-        self.play(Create(pitch), run_time=0.8)
-        self.play(Create(stumps), Create(bail), run_time=0.6)
-        
-        # Create grid for line and length zones
-        grid_lines = VGroup()
-        
-        # Vertical lines (line)
-        for x in np.linspace(-pitch_width/2, pitch_width/2, 5):
-            line = Line(
-                start=[x, -pitch_height/2, 0],
-                end=[x, pitch_height/2, 0],
-                color=BLUE_E,
-                stroke_width=1,
-                stroke_opacity=0.3
-            )
-            grid_lines.add(line)
-        
-        # Horizontal lines (length)
-        for y in np.linspace(-pitch_height/2, pitch_height/2, 7):
-            line = Line(
-                start=[-pitch_width/2, y, 0],
-                end=[pitch_width/2, y, 0],
-                color=BLUE_E,
-                stroke_width=1,
-                stroke_opacity=0.3
-            )
-            grid_lines.add(line)
-        
-        self.play(Create(grid_lines), run_time=0.8)
-        
-        # Zone labels
-        zone_labels = VGroup(
-            Text("Wide", font_size=20, color=RED).move_to([-pitch_width/2 + 0.8, 2, 0]),
-            Text("Off Stump", font_size=20, color=YELLOW).move_to([-1, 2, 0]),
-            Text("Middle", font_size=20, color=GREEN).move_to([0, 2, 0]),
-            Text("Leg Side", font_size=20, color=BLUE).move_to([1.5, 2, 0]),
-        )
-        self.play(FadeIn(zone_labels), run_time=0.6)
-        
-        # Length zones on the right
-        length_labels = VGroup(
-            Text("Full", font_size=18, color=GREEN).move_to([pitch_width/2 + 1.5, -2.5, 0]),
-            Text("Good Length", font_size=18, color=YELLOW).move_to([pitch_width/2 + 1.5, 0, 0]),
-            Text("Short", font_size=18, color=RED).move_to([pitch_width/2 + 1.5, 2.5, 0]),
-        )
-        self.play(FadeIn(length_labels), run_time=0.6)
-        
-        # Animate multiple ball trajectories
-        ball_data = [
-            {"start": [0, 4, 0], "end": [0, -3, 0], "color": GREEN, "label": "Yorker"},
-            {"start": [-1.5, 4, 0], "end": [-1.5, -1, 0], "color": YELLOW, "label": "Off Stump"},
-            {"start": [1, 4, 0], "end": [1.2, 1, 0], "color": BLUE, "label": "Leg Side"},
-            {"start": [-2.5, 4, 0], "end": [-2.5, 2, 0], "color": RED, "label": "Wide"},
-            {"start": [0.5, 4, 0], "end": [0.5, 0, 0], "color": ORANGE, "label": "Good Length"},
-        ]
-        
-        for i, ball_info in enumerate(ball_data):
-            # Create ball
-            ball = Circle(radius=0.15, color=ball_info["color"], fill_opacity=1)
-            ball.set_sheen(-0.4, DR)
-            ball.move_to(ball_info["start"])
-            
-            # Ball label
-            label = Text(ball_info["label"], font_size=16, color=ball_info["color"])
-            label.next_to(ball, UP, buff=0.2)
-            
-            # Trajectory line
-            trajectory = Line(
-                start=ball_info["start"],
-                end=ball_info["end"],
-                color=ball_info["color"],
-                stroke_width=3,
-                stroke_opacity=0.5
-            )
-            
-            # Animate
-            self.play(
-                Create(trajectory),
-                FadeIn(ball),
-                FadeIn(label),
-                run_time=0.4
-            )
-            
-            self.play(
-                ball.animate.move_to(ball_info["end"]),
-                label.animate.next_to(ball_info["end"], UP, buff=0.2),
-                run_time=1.2,
-                rate_func=rush_into
-            )
-            
-            # Add impact marker
-            impact = Circle(radius=0.2, color=ball_info["color"], stroke_width=4)
-            impact.move_to(ball_info["end"])
-            self.play(
-                Flash(impact, color=ball_info["color"], flash_radius=0.4),
-                run_time=0.3
-            )
-            
-            self.wait(0.2)
-        
-        # Final hold
-        self.wait(2)
-        
-        # Fade out
-        self.play(
-            *[FadeOut(mob) for mob in self.mobjects],
-            run_time=1
-        )
-
-def create_manim_animation(output_path="cricket_animation.mp4"):
-    # Generate Manim animation and return the video path
-    try:
-        import shutil
-        from manim import config, tempconfig
-        
-        # Create output directory if it doesn't exist
-        output_dir = os.path.dirname(output_path) or "."
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-        
-        # Use tempconfig context manager to properly set configuration
-        with tempconfig({
-            "pixel_height": 720,
-            "pixel_width": 1280,
-            "frame_rate": 30,
-            "background_color": "#1a1a2e",
-            "output_file": "CricketBallTrajectory",
-            "quality": "medium_quality",
-            "preview": False,
-            "write_to_movie": True,
-        }):
-            # Render the scene
-            scene = CricketBallTrajectory()
-            scene.render()
-            
-            # The rendered file will be in the default media directory
-            # Get the output file path from the scene
-            if hasattr(scene.renderer, 'file_writer') and scene.renderer.file_writer:
-                output_file = scene.renderer.file_writer.movie_file_path
-                if output_file and os.path.exists(output_file):
-                    shutil.copy(output_file, output_path)
-                    return output_path
-            
-            # Fallback: search for the video in default locations
-            home_dir = os.path.expanduser("~")
-            possible_dirs = [
-                os.path.join(home_dir, "media", "videos"),
-                os.path.join(".", "media", "videos"),
-                os.path.join(os.getcwd(), "media", "videos"),
-            ]
-            
-            for base_dir in possible_dirs:
-                if os.path.exists(base_dir):
-                    video_files = glob.glob(os.path.join(base_dir, "**", "*.mp4"), recursive=True)
-                    if video_files:
-                        # Get the most recent video file
-                        latest_video = max(video_files, key=os.path.getctime)
-                        shutil.copy(latest_video, output_path)
-                        return output_path
-            
-            return None
-            
-    except Exception as e:
-        st.error(f"Error creating animation: {str(e)}")
-        import traceback
-        st.code(traceback.format_exc())
-        return None
-"""
+# class CricketBallTrajectory(Scene):
+#     """Manim animation showing cricket ball trajectory from stumps view"""
+#     
+#     def construct(self):
+#         # Set background
+#         self.camera.background_color = "#1a1a2e"
+#         
+#         # Title
+#         title = Text("Cricket Ball Trajectory - Stumps View", font_size=36, color=WHITE)
+#         title.to_edge(UP)
+#         self.play(Write(title), run_time=1)
+#         self.wait(0.5)
+#         
+#         # Create pitch outline (stumps view - looking down the pitch)
+#         pitch_width = 6
+#         pitch_height = 8
+#         pitch = Rectangle(
+#             width=pitch_width, 
+#             height=pitch_height,
+#             color="#8B6F47",
+#             fill_opacity=0.3,
+#             stroke_color=WHITE,
+#             stroke_width=2
+#         )
+#         pitch.shift(DOWN * 0.5)
+#         
+#         # Stumps at bottom
+#         stump_positions = [-0.3, 0, 0.3]
+#         stumps = VGroup()
+#         for x_pos in stump_positions:
+#             stump = Rectangle(
+#                 width=0.15,
+#                 height=0.8,
+#                 color=WHITE,
+#                 fill_opacity=1,
+#                 stroke_width=2
+#             )
+#             stump.move_to([x_pos, -pitch_height/2 + 0.4, 0])
+#             stumps.add(stump)
+#         
+#         # Bails on top of stumps
+#         bail = Rectangle(width=1, height=0.1, color=WHITE, fill_opacity=1)
+#         bail.move_to([0, -pitch_height/2 + 0.85, 0])
+#         
+#         # Draw pitch and stumps
+#         self.play(Create(pitch), run_time=0.8)
+#         self.play(Create(stumps), Create(bail), run_time=0.6)
+#         
+#         # Create grid for line and length zones
+#         grid_lines = VGroup()
+#         
+#         # Vertical lines (line)
+#         for x in np.linspace(-pitch_width/2, pitch_width/2, 5):
+#             line = Line(
+#                 start=[x, -pitch_height/2, 0],
+#                 end=[x, pitch_height/2, 0],
+#                 color=BLUE_E,
+#                 stroke_width=1,
+#                 stroke_opacity=0.3
+#             )
+#             grid_lines.add(line)
+#         
+#         # Horizontal lines (length)
+#         for y in np.linspace(-pitch_height/2, pitch_height/2, 7):
+#             line = Line(
+#                 start=[-pitch_width/2, y, 0],
+#                 end=[pitch_width/2, y, 0],
+#                 color=BLUE_E,
+#                 stroke_width=1,
+#                 stroke_opacity=0.3
+#             )
+#             grid_lines.add(line)
+#         
+#         self.play(Create(grid_lines), run_time=0.8)
+#         
+#         # Zone labels
+#         zone_labels = VGroup(
+#             Text("Wide", font_size=20, color=RED).move_to([-pitch_width/2 + 0.8, 2, 0]),
+#             Text("Off Stump", font_size=20, color=YELLOW).move_to([-1, 2, 0]),
+#             Text("Middle", font_size=20, color=GREEN).move_to([0, 2, 0]),
+#             Text("Leg Side", font_size=20, color=BLUE).move_to([1.5, 2, 0]),
+#         )
+#         self.play(FadeIn(zone_labels), run_time=0.6)
+#         
+#         # Length zones on the right
+#         length_labels = VGroup(
+#             Text("Full", font_size=18, color=GREEN).move_to([pitch_width/2 + 1.5, -2.5, 0]),
+#             Text("Good Length", font_size=18, color=YELLOW).move_to([pitch_width/2 + 1.5, 0, 0]),
+#             Text("Short", font_size=18, color=RED).move_to([pitch_width/2 + 1.5, 2.5, 0]),
+#         )
+#         self.play(FadeIn(length_labels), run_time=0.6)
+#         
+#         # Animate multiple ball trajectories
+#         ball_data = [
+#             {"start": [0, 4, 0], "end": [0, -3, 0], "color": GREEN, "label": "Yorker"},
+#             {"start": [-1.5, 4, 0], "end": [-1.5, -1, 0], "color": YELLOW, "label": "Off Stump"},
+#             {"start": [1, 4, 0], "end": [1.2, 1, 0], "color": BLUE, "label": "Leg Side"},
+#             {"start": [-2.5, 4, 0], "end": [-2.5, 2, 0], "color": RED, "label": "Wide"},
+#             {"start": [0.5, 4, 0], "end": [0.5, 0, 0], "color": ORANGE, "label": "Good Length"},
+#         ]
+#         
+#         for i, ball_info in enumerate(ball_data):
+#             # Create ball
+#             ball = Circle(radius=0.15, color=ball_info["color"], fill_opacity=1)
+#             ball.set_sheen(-0.4, DR)
+#             ball.move_to(ball_info["start"])
+#             
+#             # Ball label
+#             label = Text(ball_info["label"], font_size=16, color=ball_info["color"])
+#             label.next_to(ball, UP, buff=0.2)
+#             
+#             # Trajectory line
+#             trajectory = Line(
+#                 start=ball_info["start"],
+#                 end=ball_info["end"],
+#                 color=ball_info["color"],
+#                 stroke_width=3,
+#                 stroke_opacity=0.5
+#             )
+#             
+#             # Animate
+#             self.play(
+#                 Create(trajectory),
+#                 FadeIn(ball),
+#                 FadeIn(label),
+#                 run_time=0.4
+#             )
+#             
+#             self.play(
+#                 ball.animate.move_to(ball_info["end"]),
+#                 label.animate.next_to(ball_info["end"], UP, buff=0.2),
+#                 run_time=1.2,
+#                 rate_func=rush_into
+#             )
+#             
+#             # Add impact marker
+#             impact = Circle(radius=0.2, color=ball_info["color"], stroke_width=4)
+#             impact.move_to(ball_info["end"])
+#             self.play(
+#                 Flash(impact, color=ball_info["color"], flash_radius=0.4),
+#                 run_time=0.3
+#             )
+#             
+#             self.wait(0.2)
+#         
+#         # Final hold
+#         self.wait(2)
+#         
+#         # Fade out
+#         self.play(
+#             *[FadeOut(mob) for mob in self.mobjects],
+#             run_time=1
+#         )
+# 
+# def create_manim_animation(output_path="cricket_animation.mp4"):
+#     # Generate Manim animation and return the video path
+#     try:
+#         import shutil
+#         from manim import config, tempconfig
+#         
+#         # Create output directory if it doesn't exist
+#         output_dir = os.path.dirname(output_path) or "."
+#         if not os.path.exists(output_dir):
+#             os.makedirs(output_dir)
+#         
+#         # Use tempconfig context manager to properly set configuration
+#         with tempconfig({
+#             "pixel_height": 720,
+#             "pixel_width": 1280,
+#             "frame_rate": 30,
+#             "background_color": "#1a1a2e",
+#             "output_file": "CricketBallTrajectory",
+#             "quality": "medium_quality",
+#             "preview": False,
+#             "write_to_movie": True,
+#         }):
+#             # Render the scene
+#             scene = CricketBallTrajectory()
+#             scene.render()
+#             
+#             # The rendered file will be in the default media directory
+#             # Get the output file path from the scene
+#             if hasattr(scene.renderer, 'file_writer') and scene.renderer.file_writer:
+#                 output_file = scene.renderer.file_writer.movie_file_path
+#                 if output_file and os.path.exists(output_file):
+#                     shutil.copy(output_file, output_path)
+#                     return output_path
+#             
+#             # Fallback: search for the video in default locations
+#             home_dir = os.path.expanduser("~")
+#             possible_dirs = [
+#                 os.path.join(home_dir, "media", "videos"),
+#                 os.path.join(".", "media", "videos"),
+#                 os.path.join(os.getcwd(), "media", "videos"),
+#             ]
+#             
+#             for base_dir in possible_dirs:
+#                 if os.path.exists(base_dir):
+#                     video_files = glob.glob(os.path.join(base_dir, "**", "*.mp4"), recursive=True)
+#                     if video_files:
+#                         # Get the most recent video file
+#                         latest_video = max(video_files, key=os.path.getctime)
+#                         shutil.copy(latest_video, output_path)
+#                         return output_path
+#             
+#             return None
+#             
+#     except Exception as e:
+#         st.error(f"Error creating animation: {str(e)}")
+#         import traceback
+#         st.code(traceback.format_exc())
+#         return None
 
 # -----------------------------------------------------------------------------
 # 3. Three.js 3D Visualization Helper
