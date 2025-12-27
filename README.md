@@ -1,3 +1,6 @@
+TRY THE IPL STATS ANALYSIS BY COMAPARING YOUR FAVOURITE TEAMS , HERE IS THE LINK : https://ipl-stats-and-player-analysis-5.onrender.com/
+
+
 # 🏏 IPL Team Performance Dashboard
 
 A comprehensive data analysis dashboard for comparing IPL team performance across different match phases and analyzing batter vs bowler matchups.
