@@ -6995,14 +6995,18 @@ if not comp_df.empty:
             xanchor='center'
         ),
         xaxis=dict(
-            title='Match Phase',
-            titlefont=dict(size=16, color='#333', family='Arial'),
+            title=dict(
+                text='Match Phase',
+                font=dict(size=16, color='#333', family='Arial')
+            ),
             tickfont=dict(size=13, color='#333'),
             showgrid=False
         ),
         yaxis=dict(
-            title='Run Rate',
-            titlefont=dict(size=16, color='#333', family='Arial'),
+            title=dict(
+                text='Run Rate',
+                font=dict(size=16, color='#333', family='Arial')
+            ),
             tickfont=dict(size=13, color='#333'),
             showgrid=True,
             gridcolor='rgba(200,200,200,0.3)',
@@ -7183,21 +7187,27 @@ with c1:
                     xanchor='center'
                 ),
                 xaxis=dict(
-                    title='Player',
-                    titlefont=dict(size=14, color='#333'),
+                    title=dict(
+                        text='Player',
+                        font=dict(size=14, color='#333')
+                    ),
                     tickfont=dict(size=11, color='#333'),
                     tickangle=-45
                 ),
                 yaxis=dict(
-                    title='Strike Rate',
-                    titlefont=dict(size=14, color=team1_color),
+                    title=dict(
+                        text='Strike Rate',
+                        font=dict(size=14, color=team1_color)
+                    ),
                     tickfont=dict(size=11, color=team1_color),
                     showgrid=True,
                     gridcolor='rgba(200,200,200,0.3)'
                 ),
                 yaxis2=dict(
-                    title='Average',
-                    titlefont=dict(size=14, color='#ff6b6b'),
+                    title=dict(
+                        text='Average',
+                        font=dict(size=14, color='#ff6b6b')
+                    ),
                     tickfont=dict(size=11, color='#ff6b6b'),
                     overlaying='y',
                     side='right',
@@ -7319,21 +7329,27 @@ with c2:
                     xanchor='center'
                 ),
                 xaxis=dict(
-                    title='Player',
-                    titlefont=dict(size=14, color='#333'),
+                    title=dict(
+                        text='Player',
+                        font=dict(size=14, color='#333')
+                    ),
                     tickfont=dict(size=11, color='#333'),
                     tickangle=-45
                 ),
                 yaxis=dict(
-                    title='Strike Rate',
-                    titlefont=dict(size=14, color=team2_color),
+                    title=dict(
+                        text='Strike Rate',
+                        font=dict(size=14, color=team2_color)
+                    ),
                     tickfont=dict(size=11, color=team2_color),
                     showgrid=True,
                     gridcolor='rgba(200,200,200,0.3)'
                 ),
                 yaxis2=dict(
-                    title='Average',
-                    titlefont=dict(size=14, color='#ff6b6b'),
+                    title=dict(
+                        text='Average',
+                        font=dict(size=14, color='#ff6b6b')
+                    ),
                     tickfont=dict(size=11, color='#ff6b6b'),
                     overlaying='y',
                     side='right',
